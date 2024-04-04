@@ -1170,7 +1170,7 @@ void generate_pcap_filter()
 					cleanup(1);
 				}
 				strcpy(door->pcap_filter_exp, buffer);
-				dprint("Adding pcap expression for door '%s': %s\n", door->name, door->pcap_filter_exp);
+				dprint("Adding ipv6 pcap expression for door '%s': %s\n", door->name, door->pcap_filter_exp);
 			}
 			buffer[0] = '\0';	/* "clear" the buffer */
 		}
@@ -1631,12 +1631,17 @@ void sniff(u_char* arg, const struct pcap_pkthdr* hdr, const u_char* packet)
 
 	if(lltype == DLT_EN10MB) {
 		eth = (struct ether_header*)packet;
-		if(ntohs(eth->ether_type) != ETHERTYPE_IP && ntohs(eth->ether_type) != ETHERTYPE_IPV6) {
+		if(ntohs(eth->ether_type) != ETHERTYPE_IP && ntohs(eth->ether_type) != ETHERTYPE_IPV6 && ntohs(eth->ether_type) != ETHERTYPE_VLAN) {
 			return;
 		}
 
-		ip = (struct ip*)(packet + sizeof(struct ether_header));
-		ip6 = (struct ip6_hdr*)(packet + sizeof(struct ether_header));
+		int tag_size = 0;
+		if (ntohs(eth->ether_type) == ETHERTYPE_VLAN) {
+			tag_size = 4;
+		}
+
+		ip = (struct ip*)(packet + sizeof(struct ether_header) + tag_size);
+		ip6 = (struct ip6_hdr*)(packet + sizeof(struct ether_header) + tag_size);
 #ifdef __linux__
 	} else if(lltype == DLT_LINUX_SLL) {
 		ip = (struct ip*)((u_char*)packet + 16);
