@@ -453,7 +453,7 @@ void child_exit(int signum)
 
 void reload(int signum)
 {
-	PMList *lp;
+	PMList *lp, *lpnext;
 	opendoor_t *door;
 	int res_cfg;
 
@@ -468,7 +468,13 @@ void reload(int signum)
 	list_free(doors);
 	doors = NULL;
 
-	list_free(attempts);
+	for(lp = attempts; lp; lp = lpnext) {
+		lpnext = lp->next;
+		free_attempt((knocker_t*)lp->data);
+		lp->data = NULL;
+		lp->next = lp->prev = NULL;
+		free(lp);
+	}
 	attempts = NULL;
 
 	res_cfg = parseconfig(o_cfg);
@@ -1319,6 +1325,14 @@ void free_door(opendoor_t *door)
 	}
 }
 
+void free_attempt(knocker_t *attempt)
+{
+	if(attempt) {
+		free(attempt->srchost);
+		free(attempt);
+	}
+}
+
 /* Disable the door by removing it from the doors list and free all allocated memory.
  */
 void close_door(opendoor_t *door)
@@ -1785,14 +1799,11 @@ void sniff(u_char* arg, const struct pcap_pkthdr* hdr, const u_char* packet)
 			/* splice this entry out of the list */
 			if(lp->prev) lp->prev->next = lp->next;
 			if(lp->next) lp->next->prev = lp->prev;
-			/* If lp is the only element of the list then empty the list */
-			if(lp == attempts) attempts = NULL;
+			/* update head pointer if we removed the first node */
+			if(lp == attempts) attempts = lp->next;
 			lp->prev = lp->next = NULL;
-			if(attempt->srchost) {
-				free(attempt->srchost);
-				attempt->srchost = NULL;
-			}
-			list_free(lp);
+			free_attempt(attempt);
+			free(lp);
 		}
 
 		lp = lpnext;

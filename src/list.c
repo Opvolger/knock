@@ -79,11 +79,12 @@ PMList* list_add(PMList *list, void *data)
 
 PMList* list_remove(PMList* list, void* data)
 {
-	PMList *ptr, *lp;
+	PMList *ptr, *lp, *next;
 
 	ptr = list;
 
-	for(lp = list; lp; lp = lp->next) {
+	for(lp = list; lp; lp = next) {
+		next = lp->next;
 		if(lp->data == data) {
 			if(lp->prev != NULL) {
 				lp->prev->next = lp->next;
@@ -95,6 +96,7 @@ PMList* list_remove(PMList* list, void* data)
 			if(lp == ptr) {
 				ptr = lp->next;
 			}
+			free(lp);
 		}
 	}
 	return ptr;
