@@ -21,6 +21,13 @@ installed. Then run the following:
     $ make
     $ sudo make install
 
+### BUILDING RELEASE tar.gz files
+
+```bash
+docker buildx build --platform linux/amd64,linux/arm64,linux/riscv64,linux/arm/v7 \
+   --build-arg VERSION=0.8.1 . \
+   --output=.
+```
 
 ### EXAMPLE  
 
