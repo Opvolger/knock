@@ -16,7 +16,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
         with:
-          fetch-depth: 20
+          fetch-depth: 50
       - name: Get current date
         id: date
         run: echo "date=$(date +'%m%d%H%M')" >> $GITHUB_OUTPUT
@@ -49,7 +49,7 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
         with:
-          platforms: arm64,riscv64,arm/v7
+          platforms: arm64,riscv64,arm
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
         with:
