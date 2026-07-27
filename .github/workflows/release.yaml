@@ -21,9 +21,6 @@ jobs:
       - name: Get current date
         id: date
         run: echo "date=$(date +'%m%d%H%M')" >> $GITHUB_OUTPUT
-      - name: Get short commit hash
-        id: sha_short
-        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
       - name: Determine tag
         id: tag_version
         uses: PaulHatch/semantic-version@v6.0.2
@@ -67,6 +64,8 @@ jobs:
           tags: |
             opvolger/knock:${{ needs.determine_tag.outputs.version }}
           outputs: type=local,dest=./output
+      - name: Find artifacts
+        run: find . -name \*.tar.gz -print
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
