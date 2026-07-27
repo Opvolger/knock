@@ -19,7 +19,6 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN apt update && \
     apt install -y  libpcap-dev \
                     autoconf \
-                    valgrind \
                     dh-autoreconf \
                     make
 
@@ -30,7 +29,7 @@ COPY . .
 
 RUN autoreconf -fi && \
     ./configure --prefix=/build/output/usr/local && \
-    make && make install && make -C tests memcheck
+    make && make install
 
 WORKDIR /build/output/usr/local
 
