@@ -1,4 +1,9 @@
-FROM debian:trixie AS build
+FROM eclipse-temurin:8u312-b07-jre-focal AS final-amd64
+FROM eclipse-temurin:8u312-b07-jre-focal AS final-arm64
+FROM eclipse-temurin:8u312-b07-jre-focal AS final-armv7
+FROM eclipse-temurin:25-jre-noble AS final-riscv64
+
+FROM final-$TARGETARCH$TARGETVARIANT AS build
 
 # hook into docker BuildKit --platform support
 # see https://docs.docker.com/engine/reference/builder/#automatic-platform-args-in-the-global-scope
@@ -14,6 +19,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN apt update && \
     apt install -y  libpcap-dev \
                     autoconf \
+                    valgrind \
                     dh-autoreconf \
                     make
 
@@ -24,7 +30,7 @@ COPY . .
 
 RUN autoreconf -fi && \
     ./configure --prefix=/build/output/usr/local && \
-    make && make install
+    make && make install && make -C tests memcheck
 
 WORKDIR /build/output/usr/local
 
