@@ -25,7 +25,7 @@ jobs:
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
       - name: Determine tag
         id: tag_version
-        uses: PaulHatch/semantic-version@v6.0.4
+        uses: PaulHatch/semantic-version@v6.0.2
         env:
           VERSION_STABLE: "${major}.${minor}.${patch}"
           VERSION_PRERELEASE: "${major}.${minor}.${patch}-pre-${increment}-${{ steps.date.outputs.date }}"
