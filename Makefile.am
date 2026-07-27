@@ -16,6 +16,12 @@ dist_doc_DATA = README.md TODO ChangeLog COPYING
 knock_SOURCES = src/knock.c
 knockd_SOURCES = src/knockd.c src/list.c src/list.h src/knock_helper_ipt.sh
 
+# Unit tests (run with: make check)
+check_PROGRAMS = tests/list_test
+tests_list_test_SOURCES = tests/list_test.c src/list.c src/list.h
+tests_list_test_CPPFLAGS = $(AM_CPPFLAGS)
+TESTS = tests/list_test
+
 %.1: %.1.in
 	sed -e "s/#VERSION#/$(VERSION)/" $< > $@
 

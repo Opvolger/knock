@@ -29,6 +29,26 @@ docker buildx build --platform linux/amd64,linux/arm64,linux/riscv64,linux/arm/v
    --output=.
 ```
 
+### TESTING
+
+Unit tests are provided for the list implementation. To run them:
+
+    $ make check
+
+The test suite requires **valgrind** for memory leak detection. Install it via
+your package manager before running the tests:
+
+    # Debian/Ubuntu
+    $ sudo apt-get install valgrind
+
+    # Fedora/RHEL
+    $ sudo dnf install valgrind
+
+To run only the memory-check target (after building):
+
+    $ make -C tests memcheck
+
+
 ### EXAMPLE  
 
 The example below could be used to run a strict (DENY policy) firewall that
