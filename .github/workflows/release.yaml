@@ -65,23 +65,24 @@ jobs:
             VERSION=${{ needs.determine_tag.outputs.version }}
           tags: |
             opvolger/knock:${{ needs.determine_tag.outputs.version }}
+          outputs: type=local,dest=./output
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          path: knock-${{ needs.determine_tag.outputs.version }}-amd64.tar.gz
+          path: ./output/knock-${{ needs.determine_tag.outputs.version }}-amd64.tar.gz
           archive: false
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          path: knock-${{ needs.determine_tag.outputs.version }}-arm64.tar.gz
+          path: ./output/knock-${{ needs.determine_tag.outputs.version }}-arm64.tar.gz
           archive: false
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          path: knock-${{ needs.determine_tag.outputs.version }}-armv7.tar.gz
+          path: ./output/knock-${{ needs.determine_tag.outputs.version }}-armv7.tar.gz
           archive: false
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          path: knock-${{ needs.determine_tag.outputs.version }}-riscv64.tar.gz
+          path: ./output/knock-${{ needs.determine_tag.outputs.version }}-riscv64.tar.gz
           archive: false
