@@ -69,20 +69,20 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          path: ./output/knock-${{ needs.determine_tag.outputs.version }}-amd64.tar.gz
+          path: ./output/linux_amd64/knock-${{ needs.determine_tag.outputs.version }}-amd64.tar.gz
           archive: false
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          path: ./output/knock-${{ needs.determine_tag.outputs.version }}-arm64.tar.gz
+          path: ./output/linux_arm64/knock-${{ needs.determine_tag.outputs.version }}-arm64.tar.gz
           archive: false
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          path: ./output/knock-${{ needs.determine_tag.outputs.version }}-armv7.tar.gz
+          path: ./output/linux_arm_v7/knock-${{ needs.determine_tag.outputs.version }}-armv7.tar.gz
           archive: false
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          path: ./output/knock-${{ needs.determine_tag.outputs.version }}-riscv64.tar.gz
+          path: ./output/linux_riscv64/knock-${{ needs.determine_tag.outputs.version }}-riscv64.tar.gz
           archive: false
