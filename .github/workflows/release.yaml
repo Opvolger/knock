@@ -53,7 +53,7 @@ jobs:
         with:
           platforms: linux/amd64,linux/arm64,linux/arm/v7,linux/riscv64
       - name: Build Docker image(s)
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./Dockerfile
