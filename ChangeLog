@@ -1,6 +1,6 @@
 VERSION         DESCRIPTION
 -----------------------------------------------------------------------------
-0.8.2         - Merged Seq_Cooldown option from Metalcape/knock (used by
+0.8.3         - Merged Seq_Cooldown option from Metalcape/knock (used by
                 itzg/docker-minecraft-server)
               - Build with docker (also alpine-amd64 build with musl)
               - Fix implicit declaration of free_attempt (newer gcc)
