@@ -4,55 +4,36 @@ on:
   push:
     branches:
       - 'master'
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+  pull_request:
 
 jobs:
-  determine_tag:
-    name: Determine tag
+  build:
+    name: Build tar.gz files
     runs-on: ubuntu-latest
-    outputs: 
-      version: ${{ steps.tag_version.outputs.version }}
-      version_tag: ${{ steps.tag_version.outputs.version_tag }}
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
-          filter: blob:none # exclude file contents for faster checkout
-      - name: Get current date
-        id: date
-        run: echo "date=$(date +'%m%d%H%M')" >> $GITHUB_OUTPUT
-      - name: Determine tag
-        id: tag_version
-        uses: PaulHatch/semantic-version@v6.0.2
-        env:
-          VERSION_STABLE: "${major}.${minor}.${patch}"
-          VERSION_PRERELEASE: "${major}.${minor}.${patch}-pre-${increment}-${{ steps.date.outputs.date }}"
-        with:
-          tag_prefix: ""
-          major_pattern: "(MAJOR)"
-          minor_pattern: "(MINOR)"
-          version_format: "${{ (github.event_name == 'release' && env.VERSION_STABLE) || env.VERSION_PRERELEASE }}"
-          bump_each_commit: false
-          search_commit_body: false
-
-  docker_build:
-    name: Build Docker image(s)
-    needs: [determine_tag]
-    runs-on: ubuntu-latest
-    steps: 
-      - name: Checkout
-        uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
+      - name: Determine version
+        id: version
+        run: |
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            echo "version=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=$(git describe --tags --always)-dev" >> "$GITHUB_OUTPUT"
+          fi
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
         with:
           platforms: arm64,riscv64,arm
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
-        with:
-          platforms: linux/amd64,linux/arm64,linux/arm/v7,linux/riscv64
-      - name: Build Docker image(s)
+      - name: Build tar.gz files
         uses: docker/build-push-action@v7
         with:
           context: .
@@ -60,29 +41,48 @@ jobs:
           platforms: linux/amd64,linux/arm64,linux/arm/v7,linux/riscv64
           push: false
           build-args: |
-            VERSION=${{ needs.determine_tag.outputs.version }}
-          tags: |
-            opvolger/knock:${{ needs.determine_tag.outputs.version }}
+            VERSION=${{ steps.version.outputs.version }}
           outputs: type=local,dest=./output
-      - name: Find artifacts
-        run: find . -name \*.tar.gz -print
-      - name: Upload artifact
+      - name: Collect tar.gz files
+        run: |
+          mkdir dist
+          find output -name '*.tar.gz' -exec mv {} dist/ \;
+          ls -l dist
+      - name: Upload artifacts
         uses: actions/upload-artifact@v7
         with:
-          path: ./output/linux_amd64/knock-${{ needs.determine_tag.outputs.version }}-amd64.tar.gz
-          archive: false
-      - name: Upload artifact
-        uses: actions/upload-artifact@v7
+          name: knock-${{ steps.version.outputs.version }}
+          path: dist/*.tar.gz
+
+  release:
+    name: Create GitHub release
+    needs: [build]
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
         with:
-          path: ./output/linux_arm64/knock-${{ needs.determine_tag.outputs.version }}-arm64.tar.gz
-          archive: false
-      - name: Upload artifact
-        uses: actions/upload-artifact@v7
+          fetch-depth: 0
+      - name: Check tag is on master
+        run: |
+          if ! git merge-base --is-ancestor "${GITHUB_SHA}" origin/master; then
+            echo "::error::Tag ${GITHUB_REF_NAME} does not point to a commit on master"
+            exit 1
+          fi
+      - name: Download artifacts
+        uses: actions/download-artifact@v7
         with:
-          path: ./output/linux_arm_v7/knock-${{ needs.determine_tag.outputs.version }}-armv7.tar.gz
-          archive: false
-      - name: Upload artifact
-        uses: actions/upload-artifact@v7
-        with:
-          path: ./output/linux_riscv64/knock-${{ needs.determine_tag.outputs.version }}-riscv64.tar.gz
-          archive: false
+          name: knock-${{ needs.build.outputs.version }}
+          path: dist
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          { echo '```'; cat ChangeLog; echo '```'; } > release-notes.md
+          gh release create "${GITHUB_REF_NAME}" dist/*.tar.gz \
+            --title "${GITHUB_REF_NAME}" \
+            --notes-file release-notes.md \
+            --verify-tag

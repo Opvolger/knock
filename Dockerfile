@@ -35,7 +35,30 @@ WORKDIR /build/output/usr/local
 
 RUN tar -czf knock-${VERSION}-${TARGETARCH}${TARGETVARIANT}.tar.gz *
 
-FROM scratch
+# musl build for the alpine based images (only amd64)
+FROM alpine:3.21 AS build-alpine
+
+ARG VERSION=0.8.1
+
+RUN apk add --no-cache libpcap-dev \
+                       autoconf \
+                       automake \
+                       build-base
+
+RUN mkdir -p /build/output/usr/local
+WORKDIR /build
+
+COPY . .
+
+RUN autoreconf -fi && \
+    ./configure --prefix=/build/output/usr/local && \
+    make && make install
+
+WORKDIR /build/output/usr/local
+
+RUN tar -czf knock-${VERSION}-alpine-amd64.tar.gz *
+
+FROM scratch AS export
 
 ARG TARGETOS
 ARG TARGETARCH
@@ -44,3 +67,13 @@ ARG TARGETVARIANT
 ARG VERSION=0.8.1
 
 COPY --from=build /build/output/usr/local/knock-${VERSION}-${TARGETARCH}${TARGETVARIANT}.tar.gz /
+
+FROM export AS export-amd64
+ARG VERSION=0.8.1
+COPY --from=build-alpine /build/output/usr/local/knock-${VERSION}-alpine-amd64.tar.gz /
+
+FROM export AS export-arm64
+FROM export AS export-armv7
+FROM export AS export-riscv64
+
+FROM export-$TARGETARCH$TARGETVARIANT

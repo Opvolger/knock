@@ -136,6 +136,7 @@ long get_current_one_time_sequence_position(opendoor_t *door);
 void generate_pcap_filter();
 size_t realloc_strcat(char **dest, const char *src, size_t size);
 void free_door(opendoor_t *door);
+void free_attempt(knocker_t *attempt);
 void close_door(opendoor_t *door);
 size_t parse_cmd(char *dest, size_t size, const char *command, const char *src);
 int exec_cmd(char *command, char *name);
