@@ -23,10 +23,32 @@ installed. Then run the following:
 
 ### BUILDING RELEASE tar.gz files
 
+To build for other architectures than your own, QEMU emulation is needed (once per boot):
+
+```bash
+docker run --privileged --rm tonistiigi/binfmt --install all
+```
+
+Build the tar.gz files. Every platform gives a `knock-<version>-<arch>.tar.gz`
+(glibc, Ubuntu based). Only the `linux/amd64` build also creates
+`knock-<version>-alpine-amd64.tar.gz` (musl, for Alpine based images):
+
 ```bash
 docker buildx build --platform linux/amd64,linux/arm64,linux/riscv64,linux/arm/v7 \
-   --build-arg VERSION=0.8.1 . \
-   --output=.
+   --build-arg VERSION=0.8.3 . \
+   --output=./output
+```
+
+For a quick local build of only your own architecture, leave out `--platform`
+(on an arm64 machine you then get only the arm64 tar.gz, no alpine).
+
+To build only the alpine tar.gz (from any machine, `--platform linux/amd64` is
+required, otherwise you get a binary of your own architecture):
+
+```bash
+docker buildx build --platform linux/amd64 --target export-alpine \
+   --build-arg VERSION=0.8.3 . \
+   --output=./output
 ```
 
 ### TESTING

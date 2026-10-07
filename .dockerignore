@@ -1,0 +1,4 @@
+.git
+output
+linux_*
+**/*.tar.gz

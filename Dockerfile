@@ -68,6 +68,11 @@ ARG VERSION=0.8.1
 
 COPY --from=build /build/output/usr/local/knock-${VERSION}-${TARGETARCH}${TARGETVARIANT}.tar.gz /
 
+# only the alpine tar.gz: docker buildx build --platform linux/amd64 --target export-alpine
+FROM scratch AS export-alpine
+ARG VERSION=0.8.1
+COPY --from=build-alpine /build/output/usr/local/knock-${VERSION}-alpine-amd64.tar.gz /
+
 FROM export AS export-amd64
 ARG VERSION=0.8.1
 COPY --from=build-alpine /build/output/usr/local/knock-${VERSION}-alpine-amd64.tar.gz /
